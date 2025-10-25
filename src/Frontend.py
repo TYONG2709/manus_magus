@@ -7,6 +7,9 @@ import cv2 as cv
 
 from Prediction import run_model
 from src.SpellsDisplay import display_spell, resize_to_height
+from src.TkinterHelper import create_tk_window, update_window
+
+import threading
 
 # Import MediaPipe Model
 mediaPipe_model_path = '../models/hand_landmarker.task'
@@ -84,67 +87,79 @@ options = HandLandmarkerOptions(
     result_callback=print_result,
     num_hands=NUM_HANDS
 )
-with HandLandmarker.create_from_options(options) as landmarker:
-    # The landmarker is initialized. Use it here.
-    print("Initialised")
 
-    # Use OpenCV’s VideoCapture to start capturing from the webcam
-    cam = cv.VideoCapture(0)  # Open just 1 camera
-    if not cam.isOpened():
-        print("Cannot open camera")
-        exit()
+def read_from_camera():
+    global annotated_frame, current_spell_image
 
-    while cam.isOpened():
-        # Capture frame-by-frame
-        isSuccess, frame = cam.read()
+    with HandLandmarker.create_from_options(options) as landmarker:
+        # The landmarker is initialized. Use it here.
+        print("Initialised")
 
-        if not isSuccess: # If frame is read correctly isSuccess is True
-          print("Can't receive frame (stream end?). Exiting ...")
-          break
+        # Use OpenCV’s VideoCapture to start capturing from the webcam
+        cam = cv.VideoCapture(0)  # Open just 1 camera
+        if not cam.isOpened():
+            print("Cannot open camera")
+            exit()
 
-        frame = cv.flip(frame, 1)
+        while cam.isOpened():
+            # Capture frame-by-frame
+            isSuccess, frame = cam.read()
 
-        # Convert color from BGR into RGB
-        frame_rgb = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
+            if not isSuccess: # If frame is read correctly isSuccess is True
+              print("Can't receive frame (stream end?). Exiting ...")
+              break
 
-        # Convert the frame received from OpenCV to a MediaPipe’s Image object.
-        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
+            frame = cv.flip(frame, 1)
 
-        # Create timestamp
-        timestamp_ms = int(time.time() * 1000)
+            # Convert color from BGR into RGB
+            frame_rgb = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
 
-        # Send live image data to perform hand landmarks detection.
-        # The results are accessible via the `result_callback` provided in
-        # the `HandLandmarkerOptions` object.
-        # The hand landmarker must be created with the live stream mode.
-        landmarker.detect_async(mp_image, timestamp_ms)
+            # Convert the frame received from OpenCV to a MediaPipe’s Image object.
+            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
 
-        annotated_frame_to_show = None
+            # Create timestamp
+            timestamp_ms = int(time.time() * 1000)
 
-        # Select & resize latest annotated frame for display
-        if annotated_frame is not None:
-            annotated_frame_to_show = annotated_frame
-        else:
-            annotated_frame_to_show = frame
-        annotated_frame_to_show = resize_to_height(annotated_frame_to_show, 400)
+            # Send live image data to perform hand landmarks detection.
+            # The results are accessible via the `result_callback` provided in
+            # the `HandLandmarkerOptions` object.
+            # The hand landmarker must be created with the live stream mode.
+            landmarker.detect_async(mp_image, timestamp_ms)
 
-        # Select spell image to display & combine with annotated frame if applicable
-        combined = None
-        if current_spell_image is not None:
-            current_spell_image = resize_to_height(current_spell_image, 400)
-            combined = cv.hconcat([annotated_frame_to_show, current_spell_image])
-        else:
-            combined = annotated_frame_to_show
+            annotated_frame_to_show = None
 
-        # Display window with selected elements
-        cv.imshow("Combined View", combined)
+            # Select & resize latest annotated frame for display
+            if annotated_frame is not None:
+                annotated_frame_to_show = annotated_frame
+            else:
+                annotated_frame_to_show = frame
+            annotated_frame_to_show = resize_to_height(annotated_frame_to_show, 400)
 
-        # Destroy the window when 'q' is entered
-        if cv.waitKey(1) & 0xff == ord('q'):
-            break
+            # Select spell image to display & combine with annotated frame if applicable
+            combined = None
+            if current_spell_image is not None:
+                current_spell_image = resize_to_height(current_spell_image, 400)
+                combined = cv.hconcat([annotated_frame_to_show, current_spell_image])
+            else:
+                combined = annotated_frame_to_show
 
-        time.sleep(0.3)
+            # Display window with selected elements
+            # cv.imshow("Combined View", combined)
 
-    # Clean-up
-    cam.release()
-    cv.destroyAllWindows()
+            update_window(annotated_frame_to_show, current_spell_image)
+
+            # Destroy the window when 'q' is entered
+            if cv.waitKey(1) & 0xff == ord('q'):
+                break
+
+            time.sleep(0.1)
+
+        # Clean-up
+        cam.release()
+        cv.destroyAllWindows()
+
+
+cv_thread = threading.Thread(target=read_from_camera)
+cv_thread.start()
+
+create_tk_window()
