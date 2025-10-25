@@ -6,6 +6,8 @@ print("Hello World")
 # python -m pip install mediapipe
 # DOWNLOAD THIS https://ai.google.dev/edge/mediapipe/solutions/vision/hand_landmarker/index#models
 
+import time
+
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
@@ -29,7 +31,8 @@ def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp
 options = HandLandmarkerOptions(
     base_options=BaseOptions(model_asset_path=mediaPipe_model_path),
     running_mode=VisionRunningMode.LIVE_STREAM,
-    result_callback=print_result)
+    result_callback=print_result
+)
 with HandLandmarker.create_from_options(options) as landmarker:
     # The landmarker is initialized. Use it here.
     print("Initialised")
@@ -51,19 +54,20 @@ with HandLandmarker.create_from_options(options) as landmarker:
           print("Can't receive frame (stream end?). Exiting ...")
           break
 
-        # Create a loop to read the latest frame from the camera using VideoCapture#read()
-        numpy_frame_from_opencv = frame
+        # Convert color from BGR into RGB
+        frame_rgb = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
 
         # Convert the frame received from OpenCV to a MediaPipe’s Image object.
-        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=numpy_frame_from_opencv)
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
+
+        # Create timstamp
+        timestamp_ms = int(time.time() * 1000)
 
         # Send live image data to perform hand landmarks detection.
         # The results are accessible via the `result_callback` provided in
         # the `HandLandmarkerOptions` object.
         # The hand landmarker must be created with the live stream mode.
-        landmarker.detect_async(mp_image, frame_timestamp_ms)
-
-        print_result(landmarker.result)
+        landmarker.detect_async(mp_image, timestamp_ms)
 
     # When everything done, release the capture
     cam.release()
