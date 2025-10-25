@@ -6,7 +6,7 @@ from mediapipe.tasks import python
 import cv2 as cv
 
 from Prediction import run_model
-from src.SpellsDisplay import display_spell
+from src.SpellsDisplay import display_spell, resize_to_height
 
 # Import MediaPipe Model
 mediaPipe_model_path = '../models/hand_landmarker.task'
@@ -94,10 +94,7 @@ with HandLandmarker.create_from_options(options) as landmarker:
         print("Cannot open camera")
         exit()
 
-    frame_timestamp_ms = 0
     while cam.isOpened():
-        frame_timestamp_ms += 1
-
         # Capture frame-by-frame
         isSuccess, frame = cam.read()
 
@@ -113,7 +110,7 @@ with HandLandmarker.create_from_options(options) as landmarker:
         # Convert the frame received from OpenCV to a MediaPipe’s Image object.
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
 
-        # Create timstamp
+        # Create timestamp
         timestamp_ms = int(time.time() * 1000)
 
         # Send live image data to perform hand landmarks detection.
@@ -122,20 +119,32 @@ with HandLandmarker.create_from_options(options) as landmarker:
         # The hand landmarker must be created with the live stream mode.
         landmarker.detect_async(mp_image, timestamp_ms)
 
-        # Display latest annotated frame
+        annotated_frame_to_show = None
+
+        # Select & resize latest annotated frame for display
         if annotated_frame is not None:
-            cv.imshow('Image', annotated_frame)
+            annotated_frame_to_show = annotated_frame
         else:
-            cv.imshow('Image', frame)
+            annotated_frame_to_show = frame
+        annotated_frame_to_show = resize_to_height(annotated_frame_to_show, 400)
 
-        # Show spell window (if available)
+        # Select spell image to display & combine with annotated frame if applicable
+        combined = None
         if current_spell_image is not None:
-            cv.imshow("Spell", current_spell_image)
+            current_spell_image = resize_to_height(current_spell_image, 400)
+            combined = cv.hconcat([annotated_frame_to_show, current_spell_image])
+        else:
+            combined = annotated_frame_to_show
 
-        # Display Video and when 'q' is entered, destroy the window
+        # Display window with selected elements
+        cv.imshow("Combined View", combined)
+
+        # Destroy the window when 'q' is entered
         if cv.waitKey(1) & 0xff == ord('q'):
             break
 
         time.sleep(0.3)
-    # When everything done, release the capture
+
+    # Clean-up
     cam.release()
+    cv.destroyAllWindows()

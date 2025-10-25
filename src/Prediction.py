@@ -1,6 +1,5 @@
 from joblib import load
 import pandas as pd
-from SpellsDisplay import Spell
 
 # check whether model exists
 def run_model(data):
