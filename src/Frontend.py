@@ -6,6 +6,7 @@ from mediapipe.tasks import python
 import cv2 as cv
 
 from Prediction import run_model
+from spellsDisplay import display_spell
 
 # Import MediaPipe Model
 mediaPipe_model_path = '../models/hand_landmarker.task'
@@ -37,9 +38,13 @@ def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp
 
     request = [x, y, z, confidence, hand]
 
-    print(run_model(request))
+    spell_to_display = run_model(request)
+    print(spell_to_display)
 
     hand_display_callback(result, output_image, timestamp_ms)
+
+    display_spell(spell_to_display)
+
 
 def hand_display_callback(result: HandLandmarkerResult, output_image: mp.Image, timestamp_ms):
     print('hand landmarker result: {}'.format(result))
