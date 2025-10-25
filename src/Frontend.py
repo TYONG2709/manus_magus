@@ -26,18 +26,17 @@ NUM_HANDS = 1
 def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp_ms: int):
     if len(result.hand_world_landmarks) == 0 or len(result.handedness) == 0:
         print('invalid')
-        return
+    else:
+        x = result.hand_world_landmarks[0][0].x
+        y = result.hand_world_landmarks[0][0].y
+        z = result.hand_world_landmarks[0][0].y
 
-    x = result.hand_world_landmarks[0][0].x
-    y = result.hand_world_landmarks[0][0].y
-    z = result.hand_world_landmarks[0][0].y
+        confidence = result.handedness[0][0].score
+        hand = result.handedness[0][0].category_name
 
-    confidence = result.handedness[0][0].score
-    hand = result.handedness[0][0].category_name
+        request = [x, y, z, confidence, hand]
 
-    request = [x, y, z, confidence, hand]
-
-    print(run_model(request))
+        print(run_model(request))
 
     hand_display_callback(result, output_image, timestamp_ms)
 
