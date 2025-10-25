@@ -69,5 +69,9 @@ with HandLandmarker.create_from_options(options) as landmarker:
         # The hand landmarker must be created with the live stream mode.
         landmarker.detect_async(mp_image, timestamp_ms)
 
+        # Display Video and when 'q' is entered, destroy the window
+        cv.imshow('Image', frame)
+        if cv.waitKey(1) & 0xff == ord('q'):
+            break
     # When everything done, release the capture
     cam.release()
