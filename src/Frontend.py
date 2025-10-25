@@ -6,7 +6,7 @@ from mediapipe.tasks import python
 import cv2 as cv
 
 from Prediction import run_model
-from spellsDisplay import display_spell
+from src.SpellsDisplay import display_spell
 
 # Import MediaPipe Model
 mediaPipe_model_path = '../models/hand_landmarker.task'
@@ -23,8 +23,11 @@ VisionRunningMode = mp.tasks.vision.RunningMode
 annotated_frame = None
 NUM_HANDS = 1
 
+current_spell_image = None
+
 # Create a hand landmarker instance with the live stream mode
 def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp_ms: int):
+    global current_spell_image
     if len(result.hand_world_landmarks) == 0 or len(result.handedness) == 0:
         print('invalid')
         return
@@ -42,8 +45,7 @@ def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp
     print(spell_to_display)
 
     hand_display_callback(result, output_image, timestamp_ms)
-
-    display_spell(spell_to_display)
+    current_spell_image = display_spell(spell_to_display)
 
 
 def hand_display_callback(result: HandLandmarkerResult, output_image: mp.Image, timestamp_ms):
@@ -125,6 +127,10 @@ with HandLandmarker.create_from_options(options) as landmarker:
             cv.imshow('Image', annotated_frame)
         else:
             cv.imshow('Image', frame)
+
+        # Show spell window (if available)
+        if current_spell_image is not None:
+            cv.imshow("Spell", current_spell_image)
 
         # Display Video and when 'q' is entered, destroy the window
         if cv.waitKey(1) & 0xff == ord('q'):
