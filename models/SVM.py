@@ -1,4 +1,4 @@
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split
 import pandas as pd
 
@@ -13,7 +13,13 @@ y = df['gesture']
 
 Xs_train, Xs_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state = 42, stratify = y)
 
-rnd_clf = RandomForestClassifier(n_estimators=500, n_jobs=-1)
+rnd_clf = SVC(
+    kernel = 'rbf',
+    C = 2,
+    degree = 3,  # for poly only
+    coef0 = 1, # for poly only
+    gamma = 'scale'
+)
 rnd_clf.fit(Xs_train, y_train)
 
 y_pred_clf = rnd_clf.predict(Xs_test)
@@ -24,4 +30,4 @@ print("accuracy: {:03.2f}".format(classifer_score))
 
 # export and save model
 from joblib import dump
-dump(rnd_clf, 'RandomForestClassifier.joblib')
+dump(rnd_clf, 'SVC.joblib')
