@@ -32,11 +32,11 @@ def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp
     hand = result.handedness[0][0].category_name
 
     results.append({
-        x: x,
-        y: y,
-        z: z,
-        confidence: confidence,
-        hand: hand
+        'x': x,
+        'y': y,
+        'z': z,
+        'confidence': confidence,
+        'hand': hand
     })
 
 
@@ -91,11 +91,16 @@ with HandLandmarker.create_from_options(options) as landmarker:
 
 
 # Write training data to csv
-with open("../data/gesture_data.csv", 'w') as csvfile:
-    csvfile.write("x,y,z,confidence,hand,gesture\n")
-    for line in results:
-        csvfile.write(line.x + ',' + line.y + ',' + line.z + ',' + line.confidence + ',' + line.hand + ",thumb_up" + '\n')
+# with open("../data/gesture_data.csv", 'w') as csvfile:
+#    csvfile.write("x,y,z,confidence,hand,gesture\n")
+#    for line in results:
+#        csvfile.write(str(line['x']) + ',' + str(line['y']) + ',' + str(line['z']) + ',' + str(line['confidence']) + ',' + str(line['hand']) + ",thumb_up" + '\n')
 
+# Write training data to csv (invalid data)
+with open("../data/gesture_data.csv", 'a') as csvfile:
+    for line in results:
+        csvfile.write(
+            str(line['x']) + ',' + str(line['y']) + ',' + str(line['z']) + ',' + str(line['confidence']) + ',' + str(line['hand']) + ",invalid" + '\n')
 
 """
 hand landmarker result: 
