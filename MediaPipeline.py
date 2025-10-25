@@ -1,3 +1,5 @@
+import cv2
+
 print("Hello World")
 
 # WHAT NEXT?
@@ -17,6 +19,8 @@ import cv2 as cv
 # Import MediaPipe Model
 mediaPipe_model_path = './Models/hand_landmarker.task'
 
+HAND_COLORS = [(0, 255, 0), (0, 0, 255)]
+
 # Crete Mediapipe Task
 BaseOptions = mp.tasks.BaseOptions
 HandLandmarker = mp.tasks.vision.HandLandmarker
@@ -25,6 +29,7 @@ HandLandmarkerResult = mp.tasks.vision.HandLandmarkerResult
 VisionRunningMode = mp.tasks.vision.RunningMode
 
 annotated_frame = None
+NUM_HANDS = 1
 
 # Create a hand landmarker instance with the live stream mode
 def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp_ms: int):
@@ -34,17 +39,16 @@ def hand_display_callback(result: HandLandmarkerResult, output_image: mp.Image, 
     print('hand landmarker result: {}'.format(result))
     global annotated_frame
 
-    if output_image is not None:
-        frame =  cv.cvtColor(output_image.numpy_view(), cv.COLOR_RGB2BGR)
-    else:
-        return
+    frame_display =  cv.cvtColor(output_image.numpy_view(), cv.COLOR_BGR2RGB)
+    height, width, _ = frame_display.shape
+
     if result.hand_landmarks:
-        height, width, _ = frame.shape
-        for hand_landmarks in result.hand_landmarks:
-            pixel_coords = [(int(lm.x * width), int(lm.y * height)) for lm in hand_landmarks]
+        for i, hand_landmarks in enumerate(result.hand_landmarks):
+            color = HAND_COLORS[i % len(HAND_COLORS)]
+            pixel_coords = [(int((lm.x) * width), int(lm.y * height)) for lm in hand_landmarks]
             # Draw points
             for (x, y) in pixel_coords:
-                cv.circle(frame, (x, y), 5, (0, 255, 0), -1)
+                cv.circle(frame_display, (x, y), 5, color, -1)
             # Draw connections
             connections = [
                 (0, 1), (1, 2), (2, 3), (3, 4),
@@ -56,14 +60,16 @@ def hand_display_callback(result: HandLandmarkerResult, output_image: mp.Image, 
             for start, end in connections:
                 x1, y1 = pixel_coords[start]
                 x2, y2 = pixel_coords[end]
-                cv.line(frame, (x1, y1), (x2, y2), (0, 255, 255), 2)
+                cv.line(frame_display, (x1, y1), (x2, y2), color, 2)
 
-    annotated_frame = frame
+
+    annotated_frame = frame_display
 
 options = HandLandmarkerOptions(
     base_options=BaseOptions(model_asset_path=mediaPipe_model_path),
     running_mode=VisionRunningMode.LIVE_STREAM,
-    result_callback=hand_display_callback
+    result_callback=hand_display_callback,
+    num_hands=NUM_HANDS
 )
 with HandLandmarker.create_from_options(options) as landmarker:
     # The landmarker is initialized. Use it here.
@@ -92,7 +98,7 @@ with HandLandmarker.create_from_options(options) as landmarker:
         frame_rgb = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
 
         # Convert the frame received from OpenCV to a MediaPipe’s Image object.
-        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
 
         # Create timstamp
         timestamp_ms = int(time.time() * 1000)
