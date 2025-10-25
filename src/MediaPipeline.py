@@ -6,7 +6,7 @@ from mediapipe.tasks import python
 import cv2 as cv
 
 # Import MediaPipe Model
-mediaPipe_model_path = './Models/hand_landmarker.task'
+mediaPipe_model_path = '../models/hand_landmarker.task'
 
 # Crete Mediapipe Task
 BaseOptions = mp.tasks.BaseOptions
@@ -15,9 +15,30 @@ HandLandmarkerOptions = mp.tasks.vision.HandLandmarkerOptions
 HandLandmarkerResult = mp.tasks.vision.HandLandmarkerResult
 VisionRunningMode = mp.tasks.vision.RunningMode
 
+results = []
+
 # Create a hand landmarker instance with the live stream mode
 def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp_ms: int):
     print('hand landmarker result: {}'.format(result))
+    if len(result.hand_world_landmarks) == 0 or len(result.handedness) == 0:
+        return
+
+
+    x = result.hand_world_landmarks[0][0].x
+    y = result.hand_world_landmarks[0][0].y
+    z = result.hand_world_landmarks[0][0].y
+
+    confidence = result.handedness[0][0].score
+    hand = result.handedness[0][0].category_name
+
+    results.append({
+        x: x,
+        y: y,
+        z: z,
+        confidence: confidence,
+        hand: hand
+    })
+
 
 options = HandLandmarkerOptions(
     base_options=BaseOptions(model_asset_path=mediaPipe_model_path),
@@ -64,8 +85,17 @@ with HandLandmarker.create_from_options(options) as landmarker:
         cv.imshow('Image', frame)
         if cv.waitKey(1) & 0xff == ord('q'):
             break
+
     # When everything done, release the capture
     cam.release()
+
+
+# Write training data to csv
+with open("gesture_data.csv", 'w') as csvfile:
+    csvfile.write("x,y,z,confidence,hand,gesture\n")
+    for line in results:
+        csvfile.write(line.x + ',' + line.y + ',' + line.z + ',' + line.confidence + ',' + line.hand + ",thumb_up" + '\n')
+
 
 """
 hand landmarker result: 
