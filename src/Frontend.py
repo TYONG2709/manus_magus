@@ -19,10 +19,9 @@ VisionRunningMode = mp.tasks.vision.RunningMode
 
 # Create a hand landmarker instance with the live stream mode
 def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp_ms: int):
-    print('hand landmarker result: {}'.format(result))
     if len(result.hand_world_landmarks) == 0 or len(result.handedness) == 0:
+        print('invalid')
         return
-
 
     x = result.hand_world_landmarks[0][0].x
     y = result.hand_world_landmarks[0][0].y
@@ -81,6 +80,8 @@ with HandLandmarker.create_from_options(options) as landmarker:
         cv.imshow('Image', frame)
         if cv.waitKey(1) & 0xff == ord('q'):
             break
+
+        time.sleep(0.5)
 
     # When everything done, release the capture
     cam.release()

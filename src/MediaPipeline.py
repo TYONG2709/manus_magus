@@ -39,6 +39,8 @@ def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp
         'hand': hand
     })
 
+    print(len(results))
+
 
 options = HandLandmarkerOptions(
     base_options=BaseOptions(model_asset_path=mediaPipe_model_path),
@@ -92,15 +94,15 @@ with HandLandmarker.create_from_options(options) as landmarker:
 
 # Write training data to csv
 # with open("../data/gesture_data.csv", 'w') as csvfile:
-#    csvfile.write("x,y,z,confidence,hand,gesture\n")
-#    for line in results:
+#     csvfile.write("x,y,z,confidence,hand,gesture\n")
+#     for line in results:
 #        csvfile.write(str(line['x']) + ',' + str(line['y']) + ',' + str(line['z']) + ',' + str(line['confidence']) + ',' + str(line['hand']) + ",thumb_up" + '\n')
 
 # Write training data to csv (invalid data)
 with open("../data/gesture_data.csv", 'a') as csvfile:
-    for line in results:
-        csvfile.write(
-            str(line['x']) + ',' + str(line['y']) + ',' + str(line['z']) + ',' + str(line['confidence']) + ',' + str(line['hand']) + ",invalid" + '\n')
+   for line in results:
+       csvfile.write(
+           str(line['x']) + ',' + str(line['y']) + ',' + str(line['z']) + ',' + str(line['confidence']) + ',' + str(line['hand']) + ",invalid" + '\n')
 
 """
 hand landmarker result: 

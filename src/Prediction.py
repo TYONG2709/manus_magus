@@ -1,4 +1,5 @@
 from joblib import load
+import pandas as pd
 
 # check whether model exists
 def run_model(data):
@@ -10,6 +11,11 @@ def run_model(data):
     else:
         data[4] = 0
 
-    return model.predict(data)
+    df = pd.DataFrame([data], columns=['x','y','z','confidence','hand'])
 
-# provide classifier to the frontend
+    result = model.predict(df)
+
+    if result == 1:
+        return 'thumb_up'
+    else:
+        return 'invalid'
