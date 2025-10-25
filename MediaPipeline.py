@@ -129,4 +129,6 @@ hand landmarker result:
     )
     
     
+    Final Labels: x, y, z, hand category (left / right), category confidence
+    
 """
