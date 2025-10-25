@@ -86,9 +86,7 @@ with HandLandmarker.create_from_options(options) as landmarker:
         print("Cannot open camera")
         exit()
 
-    frame_timestamp_ms = 0
     while cam.isOpened():
-        frame_timestamp_ms += 1
 
         # Capture frame-by-frame
         isSuccess, frame = cam.read()
