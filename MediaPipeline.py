@@ -24,14 +24,46 @@ HandLandmarkerOptions = mp.tasks.vision.HandLandmarkerOptions
 HandLandmarkerResult = mp.tasks.vision.HandLandmarkerResult
 VisionRunningMode = mp.tasks.vision.RunningMode
 
+annotated_frame = None
+
 # Create a hand landmarker instance with the live stream mode
 def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp_ms: int):
     print('hand landmarker result: {}'.format(result))
 
+def hand_display_callback(result: HandLandmarkerResult, output_image: mp.Image, timestamp_ms):
+    print('hand landmarker result: {}'.format(result))
+    global annotated_frame
+
+    if output_image is not None:
+        frame =  cv.cvtColor(output_image.numpy_view(), cv.COLOR_RGB2BGR)
+    else:
+        return
+    if result.hand_landmarks:
+        height, width, _ = frame.shape
+        for hand_landmarks in result.hand_landmarks:
+            pixel_coords = [(int(lm.x * width), int(lm.y * height)) for lm in hand_landmarks]
+            # Draw points
+            for (x, y) in pixel_coords:
+                cv.circle(frame, (x, y), 5, (0, 255, 0), -1)
+            # Draw connections
+            connections = [
+                (0, 1), (1, 2), (2, 3), (3, 4),
+                (0, 5), (5, 6), (6, 7), (7, 8),
+                (0, 9), (9, 10), (10, 11), (11, 12),
+                (0, 13), (13, 14), (14, 15), (15, 16),
+                (0, 17), (17, 18), (18, 19), (19, 20)
+            ]
+            for start, end in connections:
+                x1, y1 = pixel_coords[start]
+                x2, y2 = pixel_coords[end]
+                cv.line(frame, (x1, y1), (x2, y2), (0, 255, 255), 2)
+
+    annotated_frame = frame
+
 options = HandLandmarkerOptions(
     base_options=BaseOptions(model_asset_path=mediaPipe_model_path),
     running_mode=VisionRunningMode.LIVE_STREAM,
-    result_callback=print_result
+    result_callback=hand_display_callback
 )
 with HandLandmarker.create_from_options(options) as landmarker:
     # The landmarker is initialized. Use it here.
@@ -54,6 +86,8 @@ with HandLandmarker.create_from_options(options) as landmarker:
           print("Can't receive frame (stream end?). Exiting ...")
           break
 
+        frame = cv.flip(frame, 1)
+
         # Convert color from BGR into RGB
         frame_rgb = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
 
@@ -69,8 +103,13 @@ with HandLandmarker.create_from_options(options) as landmarker:
         # The hand landmarker must be created with the live stream mode.
         landmarker.detect_async(mp_image, timestamp_ms)
 
+        # Display latest annotated frame
+        if annotated_frame is not None:
+            cv.imshow('Image', annotated_frame)
+        else:
+            cv.imshow('Image', frame)
+
         # Display Video and when 'q' is entered, destroy the window
-        cv.imshow('Image', frame)
         if cv.waitKey(1) & 0xff == ord('q'):
             break
     # When everything done, release the capture
