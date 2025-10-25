@@ -125,6 +125,6 @@ with HandLandmarker.create_from_options(options) as landmarker:
         if cv.waitKey(1) & 0xff == ord('q'):
             break
 
-        time.sleep(0.5)
+        time.sleep(0.3)
     # When everything done, release the capture
     cam.release()

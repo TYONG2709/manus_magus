@@ -3,7 +3,8 @@ import pandas as pd
 
 # check whether model exists
 def run_model(data):
-    model = load('../models/RandomForestClassifier.joblib')
+    model_rnd = load('../models/RandomForestClassifier.joblib')
+    model_SVM = load('../models/SVC.joblib')
     # data is an array
 
     if data[4] == 'Right':
@@ -13,7 +14,7 @@ def run_model(data):
 
     df = pd.DataFrame([data], columns=['x','y','z','confidence','hand'])
 
-    result = model.predict(df)
+    result = model_SVM.predict(df)
 
     if result == 1:
         return 'thumb_up'
