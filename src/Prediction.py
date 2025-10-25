@@ -1,5 +1,6 @@
 from joblib import load
 import pandas as pd
+from spellsDisplay import Spell
 
 # check whether model exists
 def run_model(data):
@@ -17,9 +18,9 @@ def run_model(data):
     result = model_SVM.predict(df)
 
     match result:
-        case 0: return 'thumb up'
-        case 1: return 'shield'
-        case 10: return 'bind'
-        case 100: return 'fireball'
-        case 1000: return 'invalid'
+        case 0: return Spell.THUMBSUP
+        case 1: return Spell.SHIELD
+        case 10: return Spell.BIND
+        case 100: return Spell.FIREBALL
+        case 1000: return Spell.INVALID
     return None
