@@ -13,11 +13,15 @@ y = df['gesture']
 
 Xs_train, Xs_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state = 42, stratify = y)
 
+# 3 4 3 - 0.92
+# 3 5 3 - 0.97
+# 3 7 3 - 0.95
+# 2 7 2 - 0.95
 rnd_clf = SVC(
-    kernel = 'rbf',
+    kernel = 'poly',
     C = 2,
-    degree = 3,  # for poly only
-    coef0 = 1, # for poly only
+    degree = 7,  # for poly only
+    coef0 = 2, # for poly only
     gamma = 'scale'
 )
 rnd_clf.fit(Xs_train, y_train)

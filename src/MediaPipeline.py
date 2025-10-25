@@ -41,7 +41,6 @@ def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp
 
     print(len(results))
 
-
 options = HandLandmarkerOptions(
     base_options=BaseOptions(model_asset_path=mediaPipe_model_path),
     running_mode=VisionRunningMode.LIVE_STREAM,
@@ -103,6 +102,14 @@ with open("../data/gesture_data.csv", 'a') as csvfile:
    for line in results:
        csvfile.write(
            str(line['x']) + ',' + str(line['y']) + ',' + str(line['z']) + ',' + str(line['confidence']) + ',' + str(line['hand']) + ",invalid" + '\n')
+
+"""
+    Gestures: 
+        THUMBSUP_TEST = auto()
+        SHIELD = auto() # Open palm like a stop sign
+        BIND = auto()  # Closed fist
+        FIREBALL = auto() # Open palm fingers apart like a claw, casting a fireball
+"""
 
 """
 hand landmarker result: 

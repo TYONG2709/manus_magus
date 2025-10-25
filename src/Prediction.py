@@ -16,7 +16,10 @@ def run_model(data):
 
     result = model_SVM.predict(df)
 
-    if result == 1:
-        return 'thumb_up'
-    else:
-        return 'invalid'
+    match result:
+        case 0: return 'thumb up'
+        case 1: return 'shield'
+        case 10: return 'bind'
+        case 100: return 'fireball'
+        case 1000: return 'invalid'
+    return None
