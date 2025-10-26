@@ -1,11 +1,11 @@
 from joblib import load
 import pandas as pd
-from spellsDisplay import Spell
 
 # check whether model exists
 def run_model(data):
-    model_rnd = load('../models/RandomForestClassifier.joblib')
     model_SVM = load('../models/SVC.joblib')
+    model_KNN = load('../models/KNN.joblib')
+    model_ANN = load('../models/Experiment/ANN.joblib')
     # data is an array
 
     if data[4] == 'Right':
@@ -18,9 +18,9 @@ def run_model(data):
     result = model_SVM.predict(df)
 
     match result:
-        case 0: return Spell.THUMBSUP
-        case 1: return Spell.SHIELD
-        case 10: return Spell.BIND
-        case 100: return Spell.FIREBALL
-        case 1000: return Spell.INVALID
+        case 0: return 'thumbsup'
+        case 1: return 'shield'
+        case 10: return 'bind'
+        case 100: return 'fireball'
+        case 1000: return 'invalid'
     return None

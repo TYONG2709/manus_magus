@@ -6,6 +6,10 @@ from mediapipe.tasks import python
 import cv2 as cv
 
 from Prediction import run_model
+from src.SpellsDisplay import display_spell, resize_to_height
+from src.TkinterHelper import create_tk_window, update_window
+
+import threading
 
 # Import MediaPipe Model
 mediaPipe_model_path = '../models/hand_landmarker.task'
@@ -22,8 +26,11 @@ VisionRunningMode = mp.tasks.vision.RunningMode
 annotated_frame = None
 NUM_HANDS = 1
 
+current_spell_image = None
+
 # Create a hand landmarker instance with the live stream mode
 def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp_ms: int):
+    global current_spell_image
     if len(result.hand_world_landmarks) == 0 or len(result.handedness) == 0:
         print('invalid')
     else:
@@ -36,9 +43,12 @@ def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp
 
         request = [x, y, z, confidence, hand]
 
-        print(run_model(request))
+    spell_to_display = run_model(request)
+    print(spell_to_display)
 
     hand_display_callback(result, output_image, timestamp_ms)
+    current_spell_image = display_spell(spell_to_display)
+
 
 def hand_display_callback(result: HandLandmarkerResult, output_image: mp.Image, timestamp_ms):
     print('hand landmarker result: {}'.format(result))
@@ -76,52 +86,79 @@ options = HandLandmarkerOptions(
     result_callback=print_result,
     num_hands=NUM_HANDS
 )
-with HandLandmarker.create_from_options(options) as landmarker:
-    # The landmarker is initialized. Use it here.
-    print("Initialised")
 
-    # Use OpenCV’s VideoCapture to start capturing from the webcam
-    cam = cv.VideoCapture(0)  # Open just 1 camera
-    if not cam.isOpened():
-        print("Cannot open camera")
-        exit()
+def read_from_camera():
+    global annotated_frame, current_spell_image
 
-    while cam.isOpened():
+    with HandLandmarker.create_from_options(options) as landmarker:
+        # The landmarker is initialized. Use it here.
+        print("Initialised")
 
-        # Capture frame-by-frame
-        isSuccess, frame = cam.read()
+        # Use OpenCV’s VideoCapture to start capturing from the webcam
+        cam = cv.VideoCapture(0)  # Open just 1 camera
+        if not cam.isOpened():
+            print("Cannot open camera")
+            exit()
 
-        if not isSuccess: # If frame is read correctly isSuccess is True
-          print("Can't receive frame (stream end?). Exiting ...")
-          break
+        while cam.isOpened():
+            # Capture frame-by-frame
+            isSuccess, frame = cam.read()
 
-        frame = cv.flip(frame, 1)
+            if not isSuccess: # If frame is read correctly isSuccess is True
+              print("Can't receive frame (stream end?). Exiting ...")
+              break
 
-        # Convert color from BGR into RGB
-        frame_rgb = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
+            frame = cv.flip(frame, 1)
 
-        # Convert the frame received from OpenCV to a MediaPipe’s Image object.
-        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
+            # Convert color from BGR into RGB
+            frame_rgb = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
 
-        # Create timstamp
-        timestamp_ms = int(time.time() * 1000)
+            # Convert the frame received from OpenCV to a MediaPipe’s Image object.
+            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
 
-        # Send live image data to perform hand landmarks detection.
-        # The results are accessible via the `result_callback` provided in
-        # the `HandLandmarkerOptions` object.
-        # The hand landmarker must be created with the live stream mode.
-        landmarker.detect_async(mp_image, timestamp_ms)
+            # Create timestamp
+            timestamp_ms = int(time.time() * 1000)
 
-        # Display latest annotated frame
-        if annotated_frame is not None:
-            cv.imshow('Image', annotated_frame)
-        else:
-            cv.imshow('Image', frame)
+            # Send live image data to perform hand landmarks detection.
+            # The results are accessible via the `result_callback` provided in
+            # the `HandLandmarkerOptions` object.
+            # The hand landmarker must be created with the live stream mode.
+            landmarker.detect_async(mp_image, timestamp_ms)
 
-        # Display Video and when 'q' is entered, destroy the window
-        if cv.waitKey(1) & 0xff == ord('q'):
-            break
+            annotated_frame_to_show = None
 
-        time.sleep(0.3)
-    # When everything done, release the capture
-    cam.release()
+            # Select & resize latest annotated frame for display
+            if annotated_frame is not None:
+                annotated_frame_to_show = annotated_frame
+            else:
+                annotated_frame_to_show = frame
+            annotated_frame_to_show = resize_to_height(annotated_frame_to_show, 400)
+
+            # Select spell image to display & combine with annotated frame if applicable
+            # combined = None
+            if current_spell_image is not None:
+                current_spell_image = resize_to_height(current_spell_image, 400)
+                # combined = cv.hconcat([annotated_frame_to_show, current_spell_image])
+            # else:
+            #     combined = annotated_frame_to_show
+
+            # Display window with selected elements
+            # cv.imshow("Combined View", combined)
+
+            update_window(annotated_frame_to_show, current_spell_image)
+
+            # Destroy the window when 'q' is entered
+            if cv.waitKey(1) & 0xff == ord('q'):
+                break
+
+            time.sleep(0.1)
+
+        # Clean-up
+        cam.release()
+        cv.destroyAllWindows()
+
+
+cv_thread = threading.Thread(target=read_from_camera)
+cv_thread.start()
+
+create_tk_window()
