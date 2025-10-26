@@ -31,8 +31,9 @@ current_spell_image = None
 # Create a hand landmarker instance with the live stream mode
 def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp_ms: int):
     global current_spell_image
+    spell_to_display = None
     if len(result.hand_world_landmarks) == 0 or len(result.handedness) == 0:
-        print('invalid')
+        spell_to_display = 'invalid'
     else:
         x = result.hand_world_landmarks[0][0].x
         y = result.hand_world_landmarks[0][0].y
@@ -43,7 +44,7 @@ def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp
 
         request = [x, y, z, confidence, hand]
 
-    spell_to_display = run_model(request)
+        spell_to_display = run_model(request)
     print(spell_to_display)
 
     hand_display_callback(result, output_image, timestamp_ms)
