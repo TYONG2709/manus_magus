@@ -6,6 +6,7 @@ from mediapipe.tasks import python
 import cv2 as cv
 
 from Prediction import run_model
+from src.GameAgent import startGame
 from src.SpellsDisplay import display_spell, resize_to_height
 from src.TkinterHelper import create_tk_window, update_window, update_label
 
@@ -161,5 +162,8 @@ def read_from_camera():
 
 cv_thread = threading.Thread(target=read_from_camera)
 cv_thread.start()
+
+game_thread = threading.Thread(target=startGame())
+game_thread.start()
 
 create_tk_window()
