@@ -68,6 +68,8 @@ def update_window(camera_frame_np, spell_image_frame_np):
 def update_label(cast_target_text, casted_spell_text, timer_text):
     global cast_target_label, casted_spell_label, timer_label
 
+    print(cast_target_label)
+
     if cast_target_label is not None and cast_target_text is not None:
         cast_target_label.config(text=cast_target_text)
 

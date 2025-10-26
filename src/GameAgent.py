@@ -11,6 +11,8 @@ casted = None
 def startGame():
     global casted
 
+    time.sleep(2)
+
     while True:
         intermission()
         game_round()
@@ -32,7 +34,7 @@ def game_round():
     global casted
 
     countdown = 10
-    cast_target = spells[random.randrange(1, len(spells))]
+    cast_target = spells[random.randrange(0, len(spells))]
 
     cast_text = "Cast the following spell: " + cast_target
     casted_spell_text = "I'm waiting for you to cast something... >_<"
@@ -41,7 +43,6 @@ def game_round():
 
     while (casted != cast_target):
         time.sleep(0.05)
-        casted = cast_target
 
         if (casted == None):
             casted_spell_text = "I'm waiting for you to cast something... >_<"
@@ -64,4 +65,7 @@ def game_round():
             break
 
 
+def register_cast(casted_spell):
+    global casted
+    casted = casted_spell
 

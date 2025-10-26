@@ -6,7 +6,7 @@ from mediapipe.tasks import python
 import cv2 as cv
 
 from Prediction import run_model
-from src.GameAgent import startGame
+from src.GameAgent import startGame, register_cast
 from src.SpellsDisplay import display_spell, resize_to_height
 from src.TkinterHelper import create_tk_window, update_window, update_label
 
@@ -50,6 +50,7 @@ def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp
 
     hand_display_callback(result, output_image, timestamp_ms)
     current_spell_image = display_spell(spell_to_display)
+    register_cast(spell_to_display)
 
 
 def hand_display_callback(result: HandLandmarkerResult, output_image: mp.Image, timestamp_ms):
@@ -163,7 +164,7 @@ def read_from_camera():
 cv_thread = threading.Thread(target=read_from_camera)
 cv_thread.start()
 
-game_thread = threading.Thread(target=startGame())
+game_thread = threading.Thread(target=startGame)
 game_thread.start()
 
 create_tk_window()
