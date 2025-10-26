@@ -3,8 +3,9 @@ import pandas as pd
 
 # check whether model exists
 def run_model(data):
-    model_rnd = load('../models/RandomForestClassifier.joblib')
     model_SVM = load('../models/SVC.joblib')
+    model_KNN = load('../models/KNN.joblib')
+    model_ANN = load('../models/Experiment/ANN.joblib')
     # data is an array
 
     if data[4] == 'Right':

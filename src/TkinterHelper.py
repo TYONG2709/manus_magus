@@ -1,14 +1,15 @@
 import tkinter as tk
 from PIL import Image, ImageTk
 import cv2
-import threading
-import time
 
 camera_frame = None
 spell_image_frame = None
-spell_name = "None"
-top_text = "Top Label"
-bottom_text = "Bottom Label"
+
+title_label = None
+cast_target_label = None
+casted_spell_label = None
+timer_label = None
+
 
 def cv2_to_tk(frame):
     """Convert OpenCV BGR image to Tkinter PhotoImage."""
@@ -18,25 +19,39 @@ def cv2_to_tk(frame):
 
 root = None
 
+# Create the tkinter window, must be in main thread
 def create_tk_window():
-    global root, camera_frame, spell_image_frame
+    global root, camera_frame, spell_image_frame, title_label, cast_target_label, casted_spell_label, timer_label
 
     # Create tkinter window
     root = tk.Tk()
     root.title("Manus Magus")
 
-    test_level = tk.Label(root, text="Test Label")
-    test_level.pack(expand=True, fill=tk.BOTH)
+    title_label = tk.Label(root, text="Manus Magus", font=("Arial", 20, "bold"), pady=15)
+    title_label.pack(expand=True, fill='x')
 
-    camera_frame = tk.Label(root)
+    cast_target_label = tk.Label(root, text="Cast the following spell: ...", font=("Arial", 25), pady=15)
+    cast_target_label.pack(expand=True, fill='x')
+
+    cv2_frame = tk.Frame(root)
+    cv2_frame.pack(expand=True, fill='x')
+
+    camera_frame = tk.Label(cv2_frame)
     camera_frame.pack(side=tk.LEFT)
 
-    spell_image_frame = tk.Label(root)
+    spell_image_frame = tk.Label(cv2_frame)
     spell_image_frame.pack(side=tk.RIGHT)
+
+    casted_spell_label = tk.Label(root, text="You casted: ....", font=("Arial", 15), pady=5)
+    casted_spell_label.pack(side=tk.BOTTOM, expand=True, fill='x')
+
+    timer_label = tk.Label(root, text="You have <<TIMER>> seconds!", font=("Arial", 20, "bold"), pady=15)
+    timer_label.pack(side=tk.BOTTOM, expand=True, fill='x')
 
     root.mainloop()
 
 
+# Update the content on function invocation
 def update_window(camera_frame_np, spell_image_frame_np):
     global camera_frame, spell_image_frame
 

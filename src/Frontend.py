@@ -136,12 +136,12 @@ def read_from_camera():
             annotated_frame_to_show = resize_to_height(annotated_frame_to_show, 400)
 
             # Select spell image to display & combine with annotated frame if applicable
-            combined = None
+            # combined = None
             if current_spell_image is not None:
                 current_spell_image = resize_to_height(current_spell_image, 400)
-                combined = cv.hconcat([annotated_frame_to_show, current_spell_image])
-            else:
-                combined = annotated_frame_to_show
+                # combined = cv.hconcat([annotated_frame_to_show, current_spell_image])
+            # else:
+            #     combined = annotated_frame_to_show
 
             # Display window with selected elements
             # cv.imshow("Combined View", combined)
