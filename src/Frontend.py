@@ -7,7 +7,7 @@ import cv2 as cv
 
 from Prediction import run_model
 from src.SpellsDisplay import display_spell, resize_to_height
-from src.TkinterHelper import create_tk_window, update_window
+from src.TkinterHelper import create_tk_window, update_window, update_label
 
 import threading
 

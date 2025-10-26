@@ -64,3 +64,15 @@ def update_window(camera_frame_np, spell_image_frame_np):
         spell_image = cv2_to_tk(spell_image_frame_np)
         spell_image_frame.imgtk = spell_image
         spell_image_frame.configure(image=spell_image)
+
+def update_label(cast_target_text, casted_spell_text, timer_text):
+    global cast_target_label, casted_spell_label, timer_label
+
+    if cast_target_text is not None:
+        cast_target_label.config(text=cast_target_text)
+
+    if casted_spell_text is not None:
+        casted_spell_label.config(text=casted_spell_text)
+
+    if timer_text is not None:
+        timer_label.config(text=timer_text)
